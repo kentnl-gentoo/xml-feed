@@ -2,7 +2,7 @@ package XML::Feed::Entry::Format::RSS;
 use strict;
 use warnings;
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 
 sub format { 'RSS ' . $_[0]->{'_version'} }
 
@@ -89,7 +89,7 @@ sub content {
     } else {
         my $base;
         my $body =
-            $item->{content}{encoded} ||
+            (ref $item->{content}? $item->{content}{encoded} : $item->{content}) ||
             $item->{'http://www.w3.org/1999/xhtml'}{body} ||
             $item->{description};
         if ('HASH' eq ref($body)) {
@@ -170,7 +170,7 @@ sub modified {
             $ts =~ s/^\s+//;
             $ts =~ s/\s+$//;
             return eval { DateTime::Format::W3CDTF->parse_datetime($ts) } || eval { XML::Atom::Util::iso2dt($ts) };
-        } 
+        }
     }
 }
 

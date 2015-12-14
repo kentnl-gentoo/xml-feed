@@ -7,11 +7,12 @@ use Feed::Find;
 use URI::Fetch;
 use LWP::UserAgent;
 use Carp;
+use Scalar::Util 'blessed';
 use Module::Pluggable search_path => "XML::Feed::Format",
                       require     => 1,
                       sub_name    => 'formatters';
 
-our $VERSION = '0.52';
+our $VERSION = '0.53';
 our $MULTIPLE_ENCLOSURES = 0;
 our @formatters;
 BEGIN {
@@ -37,7 +38,7 @@ sub parse {
     return $class->error("Stream parameter is required") unless $stream;
     my $feed = bless {}, $class;
     my $xml = '';
-    if (UNIVERSAL::isa($stream, 'URI')) {
+    if (blessed($stream) and $stream->isa('URI')) {
         my $ua  = LWP::UserAgent->new;
         $ua->agent(__PACKAGE__ . "/$VERSION");
         $ua->env_proxy; # force allowing of proxies
@@ -243,7 +244,7 @@ Creates a new empty I<XML::Feed> object using the format I<$format>.
 =head2 XML::Feed->parse($stream, $format)
 
 Parses a syndication feed identified by I<$stream> and returns an
-I<XML::Feed> obhect. I<$stream> can be any
+I<XML::Feed> object. I<$stream> can be any
 one of the following:
 
 =over 4
@@ -275,9 +276,10 @@ from that page (using I<E<lt>linkE<gt>> tags).
 
 Returns a list of feed URIs.
 
-=head2 XML::Feed->identify_format($xml)
+=head2 XML::Feed->identify_format(\$xml)
 
-Given the xml of a feed return what format it is in (C<Atom>, or some version of C<RSS>).
+Given the xml of a feed return what format it is in, with C<Atom> or C<RSS> for
+all versions of RSS.  Note that you pass in a scalar ref to the xml string.
 
 =head2 $feed->convert($format)
 
